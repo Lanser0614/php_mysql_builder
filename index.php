@@ -2,28 +2,27 @@
 require_once('MysqliDb.php');
 error_reporting(E_ALL);
 
-$db = new MysqliDb (array(
-    'host' => '127.0.0.1',
-    'username' => 'root',
-    'password' => '123',
-    'db' => 'credits',
-    'port' => 3306,
-    'prefix' => '',
-    'charset' => 'utf8'));
+//$con = mysqli_connect("127.0.0.1","root","123","credits");
+$mysqli = new mysqli("127.0.0.1","root","123","credits");
 
-
+if ($mysqli -> connect_errno) {
+    echo "Failed to connect to MySQL: " . $mysqli -> connect_error;
+    exit();
+}
 $minutes_to_add = 120;
 $time = new DateTime();
 $time->sub(new DateInterval('PT' . $minutes_to_add . 'M'));
 $from = $time->format('Y-m-d H:i:s');
 $to = date('Y-m-d H:i:s');
 
-$params = array( $from,  $to, 'RINGNOANSWER');
-$data = $db->rawQuery("SELECT distinct callid, clid
+$sql = "SELECT distinct callid, clid
 FROM queuelog inner join cdr on queuelog.callid = cdr.uniqueid
 where
-(time BETWEEN ? AND ?)
-  and queuelog.event = ?", $params);
+(time BETWEEN '{$from}' AND '{$to}')
+  and queuelog.event = 'RINGNOANSWER'";
+//var_dump($sql); die();
+$result = $mysqli->query($sql);
+var_dump($result->fetch_all());
 
 
-var_dump($data);
+$mysqli -> close();
